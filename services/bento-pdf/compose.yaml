@@ -1,0 +1,9 @@
+services:
+  bentopdf:
+    image: bentopdf/bentopdf:${BENTOPDF_VERSION}
+    container_name: bentopdf
+    ports:
+      - "8000:8080"
+    networks:
+      - custom_network
+    restart: unless-stopped

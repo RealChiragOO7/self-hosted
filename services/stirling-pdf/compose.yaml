@@ -1,0 +1,19 @@
+# More info at https://docs.stirlingpdf.com/Installation/Docker%20Install
+
+services:
+  stirling-pdf:
+    image: docker.stirlingpdf.com/stirlingtools/stirling-pdf:${STIRLINGPDF_VERSION}
+    environment:
+      - DISABLE_ADDITIONAL_FEATURES=false
+      - LANGS=en_US
+    volumes:
+      - ${BASE_DATA_PATH}/StirlingPDF/trainingData:/usr/share/tessdata # Required for extra OCR languages
+      - ${BASE_DATA_PATH}/StirlingPDF/extraConfigs:/configs
+      - ${BASE_DATA_PATH}/StirlingPDF/customFiles:/customFiles/
+      - ${BASE_DATA_PATH}/StirlingPDF/logs:/logs/
+      - ${BASE_DATA_PATH}/StirlingPDF/pipeline:/pipeline/
+    ports:
+      - "8040:8080"
+    networks:
+      - custom_network
+    restart: unless-stopped

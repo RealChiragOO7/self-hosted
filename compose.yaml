@@ -1,0 +1,7 @@
+include:
+  - ./network/compose.yaml
+  - ./services/bento-pdf/compose.yaml
+  - ./services/headscale/compose.yaml
+  - ./services/pihole/compose.yaml
+  - ./services/stirling-pdf/compose.yaml
+  - ./services/vaultwarden/compose.yaml

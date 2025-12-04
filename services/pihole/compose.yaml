@@ -1,0 +1,70 @@
+# More info at https://github.com/pi-hole/docker-pi-hole/ and https://docs.pi-hole.net/
+
+services:
+  pihole:
+    container_name: pihole
+    hostname: rpi # optional, in pihole webpage it shows random hostname
+    image: pihole/pihole:latest
+    ports:
+      # DNS Ports
+      - "53:53/tcp"
+      - "53:53/udp"
+      # Default HTTP Port
+      - "8030:80/tcp"
+      # Default HTTPs Port. FTL will generate a self-signed certificate
+      - "4431:443/tcp"
+      # Uncomment the below if using Pi-hole as your DHCP Server
+      #- "67:67/udp"
+      # Uncomment the line below if you are using Pi-hole as your NTP server
+      #- "123:123/udp"
+    environment:
+      # Set the appropriate timezone for your location from
+      # https://en.wikipedia.org/wiki/List_of_tz_database_time_zones, e.g:
+      TZ: ${TZ}
+      PIHOLE_UID: ${PUID}
+      PIHOLE_GID: ${PGID}
+      # Set a password to access the web interface. Not setting one will result in a random password being assigned
+      FTLCONF_webserver_api_password: ${FTLCONF_webserver_api_password}
+      # If using Docker's default `bridge` network setting the dns listening mode should be set to 'ALL'
+      FTLCONF_dns_listeningMode: ${DNS_LISTENINGMODE}
+      FTLCONF_dns_upstreams: 'unbound#5335' # use '127.0.0.1#5335' when using network_mode: service:pihole in unbound
+      FTLCONF_dhcp_active: ${DHCP_ACTIVE}
+      FTLCONF_dhcp_ipv6: ${DHCP_IPV6_ACTIVE}
+      FTLCONF_ntp_ipv4_active: ${NTP_IPV4_ACTIVE}
+      FTLCONF_ntp_ipv6_active: ${NTP_IPV6_ACTIVE}
+      FTLCONF_ntp_sync_active: ${NTP_SYNC_ACTIVE}
+      FTLCONF_dns_cache_size: ${FTLCONF_dns_cache_size}
+      FTLCONF_dns_analyzeOnlyAandAAAA: ${FTLCONF_dns_analyzeOnlyAandAAAA}
+      FTLCONF_resolver_resolveIPv6: ${FTLCONF_resolver_resolveIPv6}
+      FTLCONF_dns_rateLimit_count: ${FTLCONF_dns_rateLimit_count}
+      FTLCONF_dns_rateLimit_interval: ${FTLCONF_dns_rateLimit_interval}
+      FTLCONF_database_maxDBdays: ${FTLCONF_database_maxDBdays}
+    volumes:
+      # For persisting Pi-hole's databases and common configuration file
+      - '${BASE_DATA_PATH}/pihole:/etc/pihole'
+      # Uncomment the below if you have custom dnsmasq config files that you want to persist. Not needed for most starting fresh with Pi-hole v6. If you're upgrading from v5 you and have used this directory before, you should keep it enabled for the first v6 container start to allow for a complete migration. It can be removed afterwards. Needs environment variable FTLCONF_misc_etc_dnsmasq_d: 'true'
+      #- './etc-dnsmasq.d:/etc/dnsmasq.d'
+    cap_add:
+      # See https://github.com/pi-hole/docker-pi-hole#note-on-capabilities
+      # Required if you are using Pi-hole as your DHCP server, else not needed
+      # - NET_ADMIN
+      # Required if you are using Pi-hole as your NTP client to be able to set the host's system time
+      # - SYS_TIME
+      # Optional, if Pi-hole should get some more processing time
+      - SYS_NICE
+    networks:
+      - custom_network
+    restart: unless-stopped
+
+  unbound:
+    container_name: unbound
+    image: alpinelinux/unbound
+    # use pihole network stack
+    # network_mode: service:pihole - to use this use 'interface: 127.0.0.1' in unbound-config/unbound.conf.d/pihole.conf
+    volumes:
+      # config files
+      - ./unbound-config/unbound.conf:/etc/unbound/unbound.conf:ro
+      - ./unbound-config/unbound.conf.d:/etc/unbound/unbound.conf.d:ro
+    networks:    # To use this interface: 0.0.0.0 in unbound-config/unbound.conf.d/pihole.conf
+      - custom_network
+    restart: unless-stopped
