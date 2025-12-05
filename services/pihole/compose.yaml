@@ -39,6 +39,7 @@ services:
       FTLCONF_dns_rateLimit_count: ${FTLCONF_dns_rateLimit_count}
       FTLCONF_dns_rateLimit_interval: ${FTLCONF_dns_rateLimit_interval}
       FTLCONF_database_maxDBdays: ${FTLCONF_database_maxDBdays}
+      FTLCONF_misc_hide_dnsmasq_warn: ${FTLCONF_misc_hide_dnsmasq_warn}
     volumes:
       # For persisting Pi-hole's databases and common configuration file
       - '${BASE_DATA_PATH}/pihole:/etc/pihole'
