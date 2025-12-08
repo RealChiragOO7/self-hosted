@@ -34,7 +34,7 @@ This method places both Pi-hole and Unbound on a shared, user-defined Docker net
     ```
     *This change is crucial for communication in a custom network setup.*
 
-##  Download the current root hints file
+##  Download the latest root.hints file
 
 Unbound expects the root hints file at **/etc/unbound/root.hints** inside the container.
 Since I am mounting **./unbound-config/root.hints** to **/etc/unbound/root.hints**, I need to download the file into **./unbound-config/root.hints** on the host.
