@@ -1,4 +1,10 @@
 # Headscale + Headplane
+
+## Configuration files
+- `config.yaml` present in headscale root folder belongs to headplane and **DO NOT CHANGE FILE NAME AND KEEP IT AS config.yaml**.
+- `config.yaml` present in **headscale/container-config** folder belongs to headscale.
+- If you get an error message that says `tls_get_more_records:packet length too long`, change headscale URL in headplane config from **https** to **http**.
+
 ## Create api key to login into headplane -- run this command on headscale server
 ```
 docker exec -it headscale headscale apikeys create -e 999d
@@ -39,7 +45,6 @@ sudo tailscale set --advertise-exit-node --exit-node-allow-lan-access=true --adv
 ## Now go into machines page > machine > machine settings in headplane site and select edit route settings > allow the advertised routes.
 ```
 
-    
 ## Some useful commands for debugging purposes
 ```
 - Find tailscale ip4 address
