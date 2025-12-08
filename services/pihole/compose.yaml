@@ -65,7 +65,7 @@ services:
     volumes:
       # config files
       - ./unbound-config/unbound.conf:/etc/unbound/unbound.conf:ro
-      - ./unbound-config/unbound.conf.d:/etc/unbound/unbound.conf.d:ro
+      - ./unbound-config/root.hints:/etc/unbound/root.hints:ro
     networks:    # To use this interface: 0.0.0.0 in unbound-config/unbound.conf.d/pihole.conf
       - custom_network
     restart: unless-stopped
