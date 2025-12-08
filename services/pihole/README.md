@@ -1,6 +1,48 @@
-# Pihole
-## Fix `so-rcvbuf` warning in Unbound (Optional)
+# Pi-hole and Unbound Configuration
 
+## Communication Methods
+
+### 1. Same Network Namespace (Using `network_mode: service:pihole`)
+
+This method places the Unbound container directly into the network stack of the Pi-hole container.
+
+- **Unbound Docker Configuration:** Use `network_mode: service:pihole`.
+- **Unbound Access:** Since Unbound shares the same network interface as Pi-hole, it can be reached via the local loopback address.
+- **Pi-hole Upstream DNS:** Set Unbound as the upstream DNS in Pi-hole using the address:
+    ```
+    127.0.0.1#5335
+    ```
+- **Unbound Configuration File (`pihole.conf`):** Ensure the `interface` setting in Unbound's configuration is set to listen only on the local loopback:
+    ```
+    interface: 127.0.0.1
+    ```
+
+### 2. Custom Docker Network
+
+This method places both Pi-hole and Unbound on a shared, user-defined Docker network, allowing them to communicate via service name resolution.
+
+- **Docker Configuration:** Use the `networks:` directive for both services (e.g., `- custom_network`).
+- **Unbound Access:** Containers on the same Docker network can resolve each other by their service name.
+- **Pi-hole Upstream DNS:** Set Unbound as the upstream DNS in Pi-hole using the Unbound service name:
+    ```
+    unbound#5335
+    ```
+    (Assuming your Unbound container service name is `unbound`).
+- **Unbound Configuration File (`unbound-config/unbound.conf`):** Unbound must be configured to listen on **all** available container network interfaces to be reachable by other containers on the network:
+    ```
+    interface: 0.0.0.0
+    ```
+    *This change is crucial for communication in a custom network setup.*
+
+##  Download the current root hints file
+
+Unbound expects the root hints file at **/etc/unbound/root.hints** inside the container.
+Since I am mounting **./unbound-config/root.hints** to **/etc/unbound/root.hints**, I need to download the file into **./unbound-config/root.hints** on the host.
+```
+wget https://www.internic.net/domain/named.root -qO- | sudo tee <path to unbound-config folder>/unbound-config/root.hints
+```
+
+## Fix `so-rcvbuf` warning in Unbound (Optional)
 The configuration in `pi-hole.conf` sets the **socket receive buffer size** for
 incoming DNS queries to a higher-than-default value in order to handle high
 query rates.
@@ -13,7 +55,7 @@ or sysctl bigger net.core.rmem_max(linux)
 or kern.ipc.maxsockbuf(bsd) values.
 ```
 
-To fix it, **run these commands on the host system**:
+To fix it, **run these commands son the host system**:
 
 1. Check the current limit. This will show something like `net.core.rmem_max = 425984`:
 
