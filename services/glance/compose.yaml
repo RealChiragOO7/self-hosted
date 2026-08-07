@@ -1,0 +1,21 @@
+# More info at https://github.com/glanceapp/glance
+
+services:
+  glance:
+    container_name: glance
+    image: glanceapp/glance
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.glance.rule=Host(`glance.${ROOT_DOMAIN}`)"
+      - "traefik.http.routers.glance.entrypoints=websecure"
+      - "traefik.http.routers.glance.tls=true"
+      - "traefik.http.services.glance.loadbalancer.server.port=8080"
+    volumes:
+      - ./container-config:/app/config # Add your configs in this folder
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      - 8080:8080
+    networks:
+      custom_network:
+        ipv4_address: 172.20.0.xx
+    restart: unless-stopped

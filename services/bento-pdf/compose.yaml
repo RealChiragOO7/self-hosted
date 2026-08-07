@@ -1,0 +1,18 @@
+# More info at https://www.bentopdf.com/docs/self-hosting/
+
+services:
+  bentopdf:
+    image: bentopdf/bentopdf-simple:${BENTOPDF_VERSION}
+    container_name: bentopdf
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.bentopdf.rule=Host(`bento.${ROOT_DOMAIN}`)"
+      - "traefik.http.routers.bentopdf.entrypoints=websecure"
+      - "traefik.http.routers.bentopdf.tls=true"
+      - "traefik.http.services.bentopdf.loadbalancer.server.port=8080"
+    ports:
+      - '3000:8080'
+    networks:
+      custom_network:
+        ipv4_address: 172.20.0.xx
+    restart: unless-stopped

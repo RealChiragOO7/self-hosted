@@ -1,0 +1,27 @@
+# More info at https://docs.stirlingpdf.com/Installation/Docker%20Install
+
+services:
+  stirling-pdf:
+    image: docker.stirlingpdf.com/stirlingtools/stirling-pdf:${STIRLINGPDF_VERSION}
+    environment:
+      - SECURITY_ENABLELOGIN=false
+      - DISABLE_ADDITIONAL_FEATURES=false
+      - LANGS=en_US
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.stirling.rule=Host(`stirling.${ROOT_DOMAIN}`)"
+      - "traefik.http.routers.stirling.entrypoints=websecure"
+      - "traefik.http.routers.stirling.tls=true"
+      - "traefik.http.services.stirling.loadbalancer.server.port=8080"
+    volumes:
+      - ${BASE_DATA_PATH}/StirlingPDF/trainingData:/usr/share/tessdata # Required for extra OCR languages
+      - ${BASE_DATA_PATH}/StirlingPDF/extraConfigs:/configs
+      - ${BASE_DATA_PATH}/StirlingPDF/customFiles:/customFiles/
+      - ${BASE_DATA_PATH}/StirlingPDF/logs:/logs/
+      - ${BASE_DATA_PATH}/StirlingPDF/pipeline:/pipeline/
+    ports:
+      - "8080:8080"
+    networks:
+      custom_network:
+        ipv4_address: 172.20.0.xx
+    restart: unless-stopped

@@ -1,0 +1,41 @@
+# More info at https://doc.traefik.io/traefik/getting-started/docker/
+
+services:
+  traefik:
+    image: traefik:${TRAEFIK_VERSION}
+    container_name: traefik
+    environment:
+      - PORKBUN_API_KEY=${PORKBUN_API_KEY}
+      - PORKBUN_SECRET_API_KEY=${PORKBUN_SECRET_API_KEY}
+    command:
+      - "--api.dashboard=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedByDefault=false"
+      - "--providers.docker.network=custom_network"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
+      - "--entrypoints.websecure.address=:443"
+      - "--certificatesresolvers.porkbun.acme.email=${ACME_EMAIL}"
+      - "--certificatesresolvers.porkbun.acme.storage=/letsencrypt/acme.json"
+      - "--certificatesresolvers.porkbun.acme.dnschallenge.provider=porkbun"
+      - "--certificatesresolvers.porkbun.acme.dnschallenge.resolvers=1.1.1.1:53"
+    labels:
+      # this router exists only to force Traefik to request the wildcard cert
+      - "traefik.enable=true"
+      - "traefik.http.routers.wildcard-cert.rule=Host(`traefik.${ROOT_DOMAIN}`)"
+      - "traefik.http.routers.wildcard-cert.entrypoints=websecure"
+      - "traefik.http.routers.wildcard-cert.tls.certResolver=porkbun"
+      - "traefik.http.routers.wildcard-cert.tls.domains[0].main=${ROOT_DOMAIN}"
+      - "traefik.http.routers.wildcard-cert.tls.domains[0].sans=*.${ROOT_DOMAIN}"
+      - "traefik.http.routers.wildcard-cert.service=api@internal"
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ${BASE_DATA_PATH}/traefik/letsencrypt:/letsencrypt
+    networks:
+      custom_network:
+        ipv4_address: 172.20.0.xx
+    restart: unless-stopped
